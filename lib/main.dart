@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'db_helper.dart';
 
 void main() {
@@ -87,24 +88,75 @@ class _MyHomePageState extends State<MyHomePage> {
             _loading
                 ? const CircularProgressIndicator()
                 : Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.vertical,
-                      child: DataTable(
-                        columns: const [
-                          DataColumn(label: Text('Timestamp')),
-                          DataColumn(label: Text('Price (USD)')),
-                        ],
-                        rows: _btcHistory.reversed
-                            .map(
-                              (entry) => DataRow(
-                                cells: [
-                                  DataCell(Text(entry['timestamp'] ?? '-')),
-                                  DataCell(Text(entry['price']?.toString() ?? '-')),
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          height: 200,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: LineChart(
+                              LineChartData(
+                                gridData: FlGridData(show: true),
+                                titlesData: FlTitlesData(
+                                  leftTitles: AxisTitles(
+                                    sideTitles: SideTitles(
+                                      showTitles: true,
+                                      reservedSize: 56, // Increase reserved space for y-axis labels
+                                    ),
+                                  ),
+                                  bottomTitles: AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false),
+                                  ),
+                                  rightTitles: AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false),
+                                  ),
+                                  topTitles: AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false),
+                                  ),
+                                ),
+                                borderData: FlBorderData(show: true),
+                                lineBarsData: [
+                                  LineChartBarData(
+                                    spots: _btcHistory.isEmpty
+                                        ? []
+                                        : List.generate(_btcHistory.length, (i) {
+                                            final entry = _btcHistory[_btcHistory.length - 1 - i];
+                                            final price = double.tryParse(entry['price']?.toString() ?? '0') ?? 0;
+                                            return FlSpot(i.toDouble(), price);
+                                          }),
+                                    isCurved: true,
+                                    color: Colors.blue,
+                                    barWidth: 2,
+                                    dotData: FlDotData(show: false),
+                                  ),
                                 ],
                               ),
-                            )
-                            .toList(),
-                      ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: DataTable(
+                              columns: const [
+                                DataColumn(label: Text('Timestamp')),
+                                DataColumn(label: Text('Price (USD)')),
+                              ],
+                              rows: _btcHistory.reversed
+                                  .map(
+                                    (entry) => DataRow(
+                                      cells: [
+                                        DataCell(Text(entry['timestamp'] ?? '-')),
+                                        DataCell(Text(entry['price']?.toString() ?? '-')),
+                                      ],
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
             ElevatedButton(
